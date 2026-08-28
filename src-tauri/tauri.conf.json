@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Private Caption Export",
+  "version": "0.1.0",
+  "identifier": "in.sociobot.private-caption-export",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:5173/workspace",
+    "beforeBuildCommand": "npm run build:site",
+    "frontendDist": "../dist/site"
+  },
+  "app": {
+    "windows": [{ "title": "Private Caption Export", "width": 1280, "height": 820, "minWidth": 390, "minHeight": 640 }],
+    "security": { "csp": "default-src 'self'; img-src 'self' data: blob:; style-src 'self'; connect-src 'self' https://api.sociobot.in https://api.github.com; object-src 'none'; base-uri 'self'" }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Productivity",
+    "shortDescription": "Share selected local caption excerpts",
+    "longDescription": "Import or transcribe captions locally, mark agreed spans, and export accessible HTML or text.",
+    "copyright": "Copyright 2026 Param Factory"
+  }
+}

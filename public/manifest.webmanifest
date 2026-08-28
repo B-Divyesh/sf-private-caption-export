@@ -1,0 +1,9 @@
+{
+  "name": "Private Caption Export",
+  "short_name": "Caption Export",
+  "start_url": "/workspace",
+  "display": "standalone",
+  "background_color": "#071311",
+  "theme_color": "#071311",
+  "icons": [{ "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }]
+}
