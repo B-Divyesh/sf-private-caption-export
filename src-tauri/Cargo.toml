@@ -1,6 +1,6 @@
 [package]
 name = "private-caption-export"
-version = "0.1.1"
+version = "0.1.2"
 description = "Consent-aware local caption excerpt tool"
 authors = ["Param Factory"]
 license = "MIT"

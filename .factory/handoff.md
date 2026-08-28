@@ -1,4 +1,4 @@
-# Private Caption Export v0.1.1 handoff
+# Private Caption Export v0.1.2 handoff
 
 ## What was built
 
@@ -56,7 +56,7 @@ Evidence is stored in `.factory/evidence/`.
 
 - Register `private-caption-export` with the Sociobot billing engine at $39 and configure its return URL.
 - Deploy `dist/site/` to `https://private-caption-export.sociobot.in`.
-- Review and publish the GitHub release created from tag `v0.1.1`.
+- Review and publish the GitHub release created from tag `v0.1.2`.
 - Add `APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX` plus their password secrets when signed builds are required. The v0.1 workflow builds unsigned packages without them.
 - Test one packaged app on each supported operating system before announcing the release.
 
