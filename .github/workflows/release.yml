@@ -1,0 +1,105 @@
+name: Desktop release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  quality:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install web and desktop test packages
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm test
+      - run: cargo test --manifest-path src-tauri/Cargo.toml
+
+  build:
+    needs: quality
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: --target universal-apple-darwin
+          - platform: ubuntu-22.04
+            args: ''
+          - platform: windows-latest
+            args: ''
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ./src-tauri -> target
+      - name: Install Linux packages
+        if: matrix.platform == 'ubuntu-22.04'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - run: npm ci
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Private Caption Export ${{ github.ref_name }}
+          releaseBody: |
+            Local caption selection and accessible excerpt export.
+
+            These builds are unsigned. On macOS, use right-click → Open. On Windows, confirm the publisher warning.
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
+
+  manifest:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir release-assets
+          gh release download "${GITHUB_REF_NAME}" --dir release-assets
+      - name: Create checksums and release manifest
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          cd release-assets
+          sha256sum * > SHA256SUMS
+          python3 - <<'PY'
+          import json, os
+          version = os.environ['GITHUB_REF_NAME']
+          repo = os.environ['REPO']
+          base = f"https://github.com/{repo}/releases/download/{version}/"
+          files = [f for f in os.listdir('.') if f not in {'SHA256SUMS', 'latest.json'}]
+          kinds = {
+            'macos': [f for f in files if f.endswith(('.dmg', '.app.tar.gz'))],
+            'windows': [f for f in files if f.endswith(('.msi', '.exe'))],
+            'linux': [f for f in files if f.endswith(('.AppImage', '.deb'))],
+          }
+          with open('latest.json', 'w') as out:
+            json.dump({'version': version, 'platforms': {k: [base + name for name in v] for k, v in kinds.items()}}, out, indent=2)
+          PY
+      - name: Upload checksums and manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" release-assets/SHA256SUMS release-assets/latest.json --clobber

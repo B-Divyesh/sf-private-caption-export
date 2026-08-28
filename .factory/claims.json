@@ -1,0 +1,58 @@
+[
+  {
+    "id": "caption-import",
+    "claim": "Imports SRT, VTT, and plain-text captions while marking missing speakers as uncertain.",
+    "where": "landing how-it-works, workspace, README",
+    "test": "npm run test:unit -- -t @claim:caption-import",
+    "sandbox": "bundled SRT, VTT, and plain-text fixtures; assert timestamps, speaker labels, and uncertainty"
+  },
+  {
+    "id": "local-private",
+    "claim": "Captions stay on this device and demo data stays separate.",
+    "where": "landing facts, privacy page, demo banner",
+    "test": "npm run test:e2e -- --grep @claim:local-private",
+    "sandbox": "fresh browser context on /demo; intercept all requests and inspect both storage namespaces"
+  },
+  {
+    "id": "local-transcription",
+    "claim": "The desktop app runs an installed whisper-cli model against local WAV audio.",
+    "where": "landing how-it-works, workspace dialog, README",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml local_transcription_runs_installed_command_without_network",
+    "sandbox": "temporary WAV, model, and executable whisper-cli fixture; assert a local SRT result and no network dependency"
+  },
+  {
+    "id": "offline-workflow",
+    "claim": "Editing and export work offline after the first load.",
+    "where": "landing facts, README",
+    "test": "npm run test:e2e -- --grep @claim:offline-workflow",
+    "sandbox": "fresh browser context on /demo; wait for the service worker, go offline, reload, edit, and download"
+  },
+  {
+    "id": "selected-export",
+    "claim": "Accessible HTML and plain text exports contain only selected caption spans.",
+    "where": "landing preview, workspace, README",
+    "test": "npm run test:e2e -- --grep @claim:selected-export",
+    "sandbox": "sample project; download both files and inspect consent, uncertainty, included text, and excluded text"
+  },
+  {
+    "id": "caption-search",
+    "claim": "Search finds caption text and speaker names in the local project.",
+    "where": "landing audience sentence, workspace, README",
+    "test": "npm run test:e2e -- --grep @claim:caption-search",
+    "sandbox": "sample project; search by a caption phrase, speaker name, and missing phrase"
+  },
+  {
+    "id": "consent-boundary",
+    "claim": "Local transcription and export require confirmed participant consent.",
+    "where": "landing privacy boundaries, workspace, README",
+    "test": "npm run test:e2e -- --grep @claim:consent-boundary",
+    "sandbox": "sample project; remove consent, assert transcription and export are blocked, then confirm consent"
+  },
+  {
+    "id": "paid-license",
+    "claim": "The optional $39 license uses Sociobot checkout and adds two HTML export themes.",
+    "where": "landing price section, terms, README",
+    "test": "npm run test:e2e -- --grep @claim:paid-license",
+    "sandbox": "fresh landing page; assert price, checkout URL, restore control, and two extra themes after a cached valid verdict"
+  }
+]
