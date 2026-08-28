@@ -35,11 +35,14 @@ Verified on 2026-08-28:
 - `npm test`: 3 unit tests and 9 Playwright tests passed.
 - `cargo test --manifest-path src-tauri/Cargo.toml`: 1 Rust test passed.
 - `npm run build:site`: passed.
+- GitHub Actions release `v0.1.2`: quality, macOS, Windows, Linux, and manifest jobs passed.
+- Release assets include DMG, MSI, EXE, AppImage, DEB, RPM, `SHA256SUMS`, and `latest.json`.
+- The published DEB hash matched `SHA256SUMS`: `1a3b7b9ced426f08644a1a2c49aa9f6616590473a3c97b8fd0e290861f1b6503`.
 - `/opt/fleet/lib/verify-url.sh`: passed with one h1, main, lang, alt text, and no console errors.
 - Playwright axe: no serious or critical findings on the landing page or exported HTML.
 - Mobile Lighthouse: performance 100, accessibility 100, best practices 100, SEO 100.
 - Lighthouse lab metrics: LCP 1.3 s, FCP 1.0 s, TBT 0 ms, CLS 0.
-- Initial transfer: 29 KiB. Built JS is 12.04 KiB gzip; CSS is 4.05 KiB gzip.
+- Initial transfer: 29 KiB. Built JS is 12.08 KiB gzip; CSS is 4.05 KiB gzip.
 - Hero WebP: 13.4 KiB at 768 × 512.
 
 Evidence is stored in `.factory/evidence/`.
@@ -50,13 +53,11 @@ Evidence is stored in `.factory/evidence/`.
 - The Whisper runtime and model are not bundled. Users install `whisper-cli` and choose a model whose license fits their use.
 - Project deletion removes the app's local-storage record. It is not a forensic secure erase of the device profile.
 - Lab Lighthouse does not report INP without interaction; TBT was 0 ms.
-- Desktop binaries are intentionally built by GitHub Actions, not in the factory worker.
 
 ## Needs operator action
 
 - Register `private-caption-export` with the Sociobot billing engine at $39 and configure its return URL.
 - Deploy `dist/site/` to `https://private-caption-export.sociobot.in`.
-- Review and publish the GitHub release created from tag `v0.1.2`.
 - Add `APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX` plus their password secrets when signed builds are required. The v0.1 workflow builds unsigned packages without them.
 - Test one packaged app on each supported operating system before announcing the release.
 

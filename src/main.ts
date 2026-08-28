@@ -34,7 +34,7 @@ function landing() {
     <section class="steps" aria-labelledby="steps-title"><p class="eyebrow">How it works</p><h2 id="steps-title">Keep a clear consent boundary</h2><ol><li><div class="step-shot import-shot" aria-hidden="true"><i></i><i></i><i></i></div><b>1 · Import locally</b><span>Open SRT, VTT, or text. The desktop app can run your installed Whisper model.</span></li><li><div class="step-shot check-shot" aria-hidden="true"><i></i><i></i><i></i></div><b>2 · Check the words</b><span>Correct captions and label uncertain speakers before sharing.</span></li><li><div class="step-shot export-shot" aria-hidden="true"><i></i><i></i><i></i></div><b>3 · Export the agreement</b><span>Choose spans and save an accessible HTML or text excerpt.</span></li></ol><p class="walkthrough-note">Three frames show import, review, and the selected handoff.</p></section>
     <section class="boundaries" aria-labelledby="boundaries-title"><div><p class="eyebrow">Privacy boundaries</p><h2 id="boundaries-title">No meeting bot. No cloud transcript.</h2></div><ul><li>Audio is not uploaded by this product.</li><li>Raw audio is never added to an export.</li><li>You confirm consent before caption capture.</li><li>Speaker labels are typed, not identified.</li></ul></section>
     <section class="price" aria-labelledby="price-title"><div><p class="eyebrow">Keep using it</p><h2 id="price-title">Core caption access stays free</h2><p>Import, edit, select, and export captions without paying.</p></div><div class="price-ticket"><p class="amount">$39 <span>one time</span></p><p>The license adds dark and high-contrast HTML export themes. It does not gate accessibility or export.</p><a class="button primary" href="https://api.sociobot.in/api/v1/products/${PRODUCT}/checkout">Buy a desktop license <span class="sr-only">(external site)</span></a><button class="link-button" type="button" data-restore>Have a license? Paste it</button><div id="license-status" class="license-status" aria-live="polite"></div><div id="license-form"></div></div></section>
-    <section class="downloads" aria-labelledby="downloads-title"><p class="eyebrow">Desktop app</p><h2 id="downloads-title">Install for your computer</h2><p>The first release is being prepared. Builds are unsigned and may need system approval.</p><div id="download-actions"><a class="button secondary" href="https://github.com/B-Divyesh/sf-private-caption-export/releases">View release downloads <span class="sr-only">(external site)</span></a></div></section>
+    <section class="downloads" aria-labelledby="downloads-title"><p class="eyebrow">Desktop app</p><h2 id="downloads-title">Install for your computer</h2><p id="download-status">Downloads are being published. Builds are unsigned and may need system approval.</p><div id="download-actions"><a class="button secondary" href="https://github.com/B-Divyesh/sf-private-caption-export/releases">View release downloads <span class="sr-only">(external site)</span></a></div></section>
   </main>`);
 }
 
@@ -287,9 +287,12 @@ async function releaseDownload() {
     const data = stored && Date.now() - stored.time < 3_600_000 ? stored.data : await fetch('https://api.github.com/repos/B-Divyesh/sf-private-caption-export/releases/latest').then(r => { if (!r.ok) throw new Error(); return r.json(); });
     if (!stored) localStorage.setItem('pce:release', JSON.stringify({ time: Date.now(), data }));
     const platform = /Win/.test(navigator.platform) ? 'Windows' : /Mac/.test(navigator.platform) ? 'macOS' : 'Linux';
-    const pattern = platform === 'Windows' ? /\.(msi|exe)$/ : platform === 'macOS' ? /\.(dmg|app\.tar\.gz)$/ : /\.(AppImage|deb)$/;
-    const asset = data.assets?.find((item: { name: string }) => pattern.test(item.name));
-    if (asset) holder.innerHTML = `<a class="button primary" href="${escapeAttr(asset.browser_download_url)}">Download for ${platform}</a><a href="${escapeAttr(data.html_url)}">All releases <span class="sr-only">(external site)</span></a>`;
+    const extensions = platform === 'Windows' ? ['.msi', '.exe'] : platform === 'macOS' ? ['.dmg', '.app.tar.gz'] : ['.AppImage', '.deb'];
+    const asset = extensions.map(extension => data.assets?.find((item: { name: string }) => item.name.endsWith(extension))).find(Boolean);
+    if (asset) {
+      holder.innerHTML = `<a class="button primary" href="${escapeAttr(asset.browser_download_url)}">Download for ${platform}</a><a href="${escapeAttr(data.html_url)}">All releases <span class="sr-only">(external site)</span></a>`;
+      document.querySelector('#download-status')!.textContent = `${data.tag_name || 'The latest release'} is ready. Builds are unsigned and may need system approval.`;
+    }
   } catch { /* calm fallback already rendered */ }
 }
 

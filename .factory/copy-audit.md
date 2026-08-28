@@ -60,8 +60,9 @@ Audited 2026-08-28. Counts treat hyphenated terms, prices, and version strings a
 | Try again when online. | 4 | Pass |
 | Desktop app | 2 | Pass |
 | Install for your computer | 4 | Pass |
-| The first release is being prepared. | 6 | Pass |
+| Downloads are being published. | 4 | Pass |
 | Builds are unsigned and may need system approval. | 8 | Pass |
+| The latest release is ready. | 5 | Pass |
 | View release downloads | 3 | Pass |
 | Turn local captions into an agreed handoff. | 7 | Pass |
 | Built by Param Factory | 4 | Pass |
