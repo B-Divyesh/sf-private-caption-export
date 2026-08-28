@@ -14,7 +14,7 @@ function header() {
 }
 
 function footer() {
-  return `<footer><p>Turn local captions into an agreed handoff.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://www.sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p>v0.1.0 · Generated artwork disclosed in the design notes.</p></footer>`;
+  return `<footer><p>Turn local captions into an agreed handoff.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://www.sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p>v0.1.1 · Generated artwork disclosed in the design notes.</p></footer>`;
 }
 
 function shell(content: string) {
