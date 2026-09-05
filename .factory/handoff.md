@@ -1,5 +1,21 @@
 # Private Caption Export v0.1.2 handoff
 
+## Independent verification 1 — 2026-09-05
+
+Verdict: **FAIL**. `.factory/verification-1.md` records the complete evidence.
+The implementation reviewed was `f04fa05` (release `v0.1.2`); the
+documentation commit was `7848a29`.
+
+- Clean-checkout `npm test`, every declared claim command, `npm run build:site`,
+  and `cargo test --manifest-path src-tauri/Cargo.toml` passed after the
+  release-workflow Tauri Linux prerequisites were installed.
+- Fresh live desktop/phone, demo, privacy/legal, keyboard, offline, console,
+  Playwright axe, release checksum, installer, and Linux artifact checks passed.
+- Open findings: unknown live routes return HTTP 200 rather than a real 404;
+  five public privacy claims are not registered and tested in
+  `.factory/claims.json`. Do not treat this version as a product PASS until
+  those findings are repaired and independently rechecked.
+
 ## What was built
 
 - A Tauri 2 desktop app with a Vite and TypeScript interface.
