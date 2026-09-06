@@ -1,84 +1,64 @@
-# Private Caption Export v0.1.2 handoff
+# Export selected local captions — repair handoff v0.1.3
 
-## Independent verification 1 — 2026-09-05
+## Release identity
 
-Verdict: **FAIL**. `.factory/verification-1.md` records the complete evidence.
-The implementation reviewed was `f04fa05` (release `v0.1.2`); the
-documentation commit was `7848a29`.
+- Implementation SHA: `c306e6e5b0a749e021753d462dcc35a8a3b84bd0`.
+- Release tag: `v0.1.3`.
+- Documentation at repair start: `4906dd5e18c15717c35c29811c739a274e00380f`.
+- Static site: <https://private-caption-export.sociobot.in>.
+- Desktop release workflow: <https://github.com/B-Divyesh/sf-private-caption-export/actions/runs/34014413023>.
 
-- Clean-checkout `npm test`, every declared claim command, `npm run build:site`,
-  and `cargo test --manifest-path src-tauri/Cargo.toml` passed after the
-  release-workflow Tauri Linux prerequisites were installed.
-- Fresh live desktop/phone, demo, privacy/legal, keyboard, offline, console,
-  Playwright axe, release checksum, installer, and Linux artifact checks passed.
-- Open findings: unknown live routes return HTTP 200 rather than a real 404;
-  five public privacy claims are not registered and tested in
-  `.factory/claims.json`. Do not treat this version as a product PASS until
-  those findings are repaired and independently rechecked.
+## Job, audience, and first action
 
-## What was built
+The job is to select consented local captions and export only the agreed, accessible excerpt. It is for hearing-impaired professionals and privacy-conscious teams. The first action is **Try it with sample data**, which opens a finished meeting with three selected spans.
 
-- A Tauri 2 desktop app with a Vite and TypeScript interface.
-- Local SRT, VTT, and plain-text caption import.
-- Local WAV transcription through an installed `whisper-cli` and user-selected model.
-- Consent-gated transcription and export.
-- Search across caption text and speaker names.
-- Editable speaker labels, visible uncertainty, span selection, and timestamped previews.
-- Accessible HTML and plain-text exports containing only selected spans.
-- Local project storage, confirmed deletion, and a session-only demo namespace.
-- A one-click `/demo` with five realistic caption spans and three selected spans.
-- A $39 one-time Sociobot license flow for two optional HTML export themes.
-- `/privacy`, `/terms`, `/notices`, and styled 404 routes.
-- OS-aware release downloads with a calm pre-release fallback.
-- Checksum-verifying shell and PowerShell installers.
-- A Tauri release workflow for macOS universal, Windows, and Linux bundles.
+## What changed
 
-The visual system follows the generative-geometry thesis in `.factory/design.md`. The hero is original factory-model artwork generated with `/opt/fleet/lib/gen-image.sh`. Its source, exact prompt, and provenance are in `assets/src/`.
+- Fixed unknown routes returning HTTP 200. The build now emits static pages for every supported route and a dedicated `404.html`. Static Web Apps excludes unknown paths from the SPA fallback and rewrites real 404 responses to that page.
+- Added a browser regression that checks both the HTTP 404 status and the useful recovery screen.
+- Registered and tested the five previously unlisted privacy claims: no meeting bot or cloud transcript, local audio transcription, no raw audio in exports, reviewer-typed speaker labels, and no tracking or caption content in release/license requests.
+- Added live axe coverage for the demo workspace.
+- Fixed a real desktop race: simultaneous local transcriptions could share a millisecond-based temporary filename. Each local transcription now receives a process-local sequence suffix, with a concurrent regression test.
+- Bumped the service-worker cache and desktop package to `v0.1.3`, so existing visitors update to the repaired site and new desktop downloads include the race fix.
 
-## Run and verify
+## Verification
 
-```sh
-npm ci
-npm test
-npm run build:site
-cargo test --manifest-path src-tauri/Cargo.toml
-```
+From the documented clean setup, `npm ci` passed. The Linux Tauri packages from `.github/workflows/release.yml` were installed before the Rust check.
 
-The deploy output is `dist/site/`, with `dist/site/index.html` at its root. Run the desktop app with `npm run tauri dev` after installing the Tauri system packages listed in the release workflow.
+- `npm test` passed: 4 unit tests and 13 Playwright tests.
+- `cargo test --manifest-path src-tauri/Cargo.toml` passed: 3 Rust tests.
+- `npm run build` passed and produced `dist/site/`.
+- Every command declared in `.factory/claims.json` was run literally and passed. This includes all 13 current claim commands.
+- Local static verification passed with `/opt/fleet/lib/verify-url.sh`: title, language, main landmark, one heading, alt text, and no console errors. The local unknown-route request returned HTTP 404.
+- Live verification passed after deployment. The live root returned HTTP 200. `GET /not-a-real-page` returned HTTP 404 and loaded the styled recovery page.
+- Fresh desktop and 390 px phone contexts showed the job, audience, first action, and three facts before scrolling. The phone had no horizontal overflow and reduced-motion scrolling was `auto`.
+- Live demo checks passed: five realistic caption spans with three selected, the persistent sample label survived reload, an edit stayed in `sessionStorage` under `demo:pce:project`, the real `localStorage` project was unchanged, Reset restored the sample, and Start for real discarded demo storage.
+- Live Playwright axe checks on `/`, `/demo`, and the 404 page had no serious or critical violations. Live console checks on the landing page had no errors.
+- The static deployment completed successfully against the existing `sf-private-caption-export` app. The live cache name is `private-caption-export-v0.1.3`.
+- GitHub Actions quality, macOS, Windows, Linux, and manifest jobs all passed for `v0.1.3`. The release has DMG, macOS archive, MSI, EXE, AppImage, DEB, RPM, `SHA256SUMS`, and `latest.json`.
+- `latest.json` is valid for macOS, Windows, and Linux. The downloaded Linux DEB matched `SHA256SUMS` with SHA-256 `5eb1b3b410eacf2a583a9c21cd18b64f93911a249a1b5aa43178f04eb1bae678` and its extracted executable stayed running for eight seconds in a clean temporary consumer path under Xvfb.
+- A fresh live Linux browser selected the v0.1.3 AppImage download link with no console errors.
 
-Verified on 2026-08-28:
+Evidence includes `/work/.evidence/live-post-repair/`, `/work/.evidence/local-post-repair/`, `/work/.evidence/catalog-description.txt`, and `/work/.evidence/billing-offer.json`.
 
-- `npm test`: 3 unit tests and 9 Playwright tests passed.
-- `cargo test --manifest-path src-tauri/Cargo.toml`: 1 Rust test passed.
-- `npm run build:site`: passed.
-- GitHub Actions release `v0.1.2`: quality, macOS, Windows, Linux, and manifest jobs passed.
-- Release assets include DMG, MSI, EXE, AppImage, DEB, RPM, `SHA256SUMS`, and `latest.json`.
-- The published DEB hash matched `SHA256SUMS`: `1a3b7b9ced426f08644a1a2c49aa9f6616590473a3c97b8fd0e290861f1b6503`.
-- `/opt/fleet/lib/verify-url.sh`: passed with one h1, main, lang, alt text, and no console errors.
-- Playwright axe: no serious or critical findings on the landing page or exported HTML.
-- Mobile Lighthouse: performance 100, accessibility 100, best practices 100, SEO 100.
-- Lighthouse lab metrics: LCP 1.3 s, FCP 1.0 s, TBT 0 ms, CLS 0.
-- Initial transfer: 29 KiB. Built JS is 12.08 KiB gzip; CSS is 4.05 KiB gzip.
-- Hero WebP: 13.4 KiB at 768 × 512.
+## Prior finding disposition
 
-Evidence is stored in `.factory/evidence/`.
+| Earlier finding | Current disposition | Evidence |
+| --- | --- | --- |
+| F-1: unknown routes returned HTTP 200 | Fixed | local and live unknown-route checks return HTTP 404; browser test asserts the status and recovery page |
+| F-2: five public privacy claims were unregistered | Fixed | five new claim records and outcome-based sandbox checks all pass |
+
+No earlier review or verification record exists before `verification-1.md`.
 
 ## Known gaps
 
-- v0.1 transcribes a chosen WAV file after capture. It does not yet stream microphone captions live.
-- The Whisper runtime and model are not bundled. Users install `whisper-cli` and choose a model whose license fits their use.
-- Project deletion removes the app's local-storage record. It is not a forensic secure erase of the device profile.
-- Lab Lighthouse does not report INP without interaction; TBT was 0 ms.
+- The v0.1 desktop app transcribes a chosen WAV file after capture. It does not stream microphone captions live.
+- `whisper-cli` and a Whisper model are not bundled. The user installs the runtime and chooses a compatible local model.
+- Project deletion removes the app’s local record. It is not a forensic secure erase of the device profile.
+- The $39 one-time license offer still needs Sociobot billing registration. The free import, edit, select, and export flow works without it. No checkout result is treated as entitlement until license verification succeeds.
 
-## Needs operator action
+## Operator action
 
-- Register `private-caption-export` with the Sociobot billing engine at $39 and configure its return URL.
-- Deploy `dist/site/` to `https://private-caption-export.sociobot.in`.
-- Add `APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX` plus their password secrets when signed builds are required. The v0.1 workflow builds unsigned packages without them.
-- Test one packaged app on each supported operating system before announcing the release.
-
-## Next steps
-
-- Add streaming microphone capture and rolling local transcription.
-- Offer a model setup check that verifies the executable and model before a meeting.
-- Add encrypted project-at-rest storage if workplace deployments require it.
+- Register `private-caption-export` with the Sociobot billing engine at $39 one time and use `https://private-caption-export.sociobot.in/` as the return URL. The exact public offer metadata is in `/work/.evidence/billing-offer.json`.
+- Add `APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX` plus their password secrets before shipping signed desktop builds. v0.1.3 packages are intentionally unsigned.
+- Test one packaged app on each supported operating system before a broad release announcement.
