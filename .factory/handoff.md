@@ -1,5 +1,14 @@
 # Export selected local captions — repair handoff v0.1.3
 
+## Independent QA update — verification 2
+
+Independent verification of implementation `c306e6e5b0a749e021753d462dcc35a8a3b84bd0` against documentation baseline `dda1b05611fe634b936987e3f56e459f55541ed2` is **FAIL** with two minor findings and zero untested claims. Product code was not changed in this pass.
+
+- All 13 declared claim commands, the full JavaScript and Rust suites, and the static build passed from a clean checkout after the documented Linux desktop prerequisites were installed.
+- Fresh live desktop and phone checks confirmed the job, audience, and sample first action before scrolling. The demo is isolated, persistent while in demo, resettable, and discarded on Start for real. Live 404, legal routes, keyboard skip link, reduced motion, privacy request behavior, release manifest, checksum, and a clean Linux consumer launch passed.
+- The prior 404-status and unregistered-privacy-claim findings remain fixed.
+- Follow-up required: make every link and compact control at least 44 px in both dimensions; replace the landing and 404 metaphorical headings with plain language. See `.factory/verification-2.md` for exact measurements and remediation.
+
 ## Release identity
 
 - Implementation SHA: `c306e6e5b0a749e021753d462dcc35a8a3b84bd0`.
