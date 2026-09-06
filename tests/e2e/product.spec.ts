@@ -16,6 +16,78 @@ test('@claim:local-private demo keeps caption data separate and sends no caption
   expect([...outsideOrigins]).toEqual([]);
 });
 
+test('@claim:no-meeting-bot-or-cloud-transcript demo completes without a remote service request', async ({ page }) => {
+  const remoteRequests: string[] = [];
+  page.on('request', request => {
+    const url = new URL(request.url());
+    if (url.origin !== 'http://127.0.0.1:4173') remoteRequests.push(request.url());
+  });
+
+  await page.goto('/demo');
+  await page.getByLabel('Text for caption 2').fill('Approved local correction.');
+  await page.getByLabel('Text for caption 2').blur();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export plain text' }).click();
+  await download;
+
+  expect(remoteRequests).toEqual([]);
+});
+
+test('@claim:typed-speaker-labels exports the speaker name entered by the reviewer without a remote request', async ({ page }) => {
+  const remoteRequests: string[] = [];
+  page.on('request', request => {
+    const url = new URL(request.url());
+    if (url.origin !== 'http://127.0.0.1:4173') remoteRequests.push(request.url());
+  });
+
+  await page.goto('/demo');
+  await page.getByLabel('Speaker for caption 4').fill('Leah');
+  await page.getByLabel('Speaker for caption 4').blur();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export plain text' }).click();
+  const path = await (await download).path();
+  const text = await import('node:fs/promises').then(fs => fs.readFile(path!, 'utf8'));
+
+  expect(text).toContain('Leah (speaker uncertain)');
+  expect(text).not.toContain('Speaker unclear');
+  expect(remoteRequests).toEqual([]);
+});
+
+test('@claim:no-tracking-or-caption-requests sends no captions to release or license services', async ({ page }) => {
+  const remoteRequests: Array<{ url: string; method: string; body: string | null }> = [];
+  const captionMarker = 'CAPTION_CONTENT_MUST_STAY_LOCAL';
+  await page.addInitScript(marker => {
+    localStorage.setItem('pce:project', JSON.stringify({
+      title: 'Private meeting', date: '2026-09-06', consent: true,
+      captions: [{ id: 'c1', start: 0, end: 3, speaker: 'Reviewer', text: marker, uncertain: false, selected: true }]
+    }));
+  }, captionMarker);
+  page.on('request', request => {
+    const url = new URL(request.url());
+    if (url.origin !== 'http://127.0.0.1:4173') remoteRequests.push({ url: request.url(), method: request.method(), body: request.postData() });
+  });
+  await page.route('https://api.github.com/repos/B-Divyesh/sf-private-caption-export/releases/latest', route => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ tag_name: 'v0.1.3', html_url: 'https://github.com/B-Divyesh/sf-private-caption-export/releases/tag/v0.1.3', assets: [] })
+  }));
+  await page.route('https://api.sociobot.in/api/v1/products/private-caption-export/verify?license=local-license', route => route.fulfill({
+    contentType: 'application/json', body: JSON.stringify({ valid: false, reason: 'invalid' })
+  }));
+
+  await page.goto('/?license=local-license');
+  await expect(page.locator('#license-status')).toContainText('License no longer active');
+  await expect.poll(() => remoteRequests.length).toBe(2);
+
+  expect(remoteRequests.map(request => request.method)).toEqual(['GET', 'GET']);
+  expect(remoteRequests.map(request => request.url)).toEqual([
+    'https://api.sociobot.in/api/v1/products/private-caption-export/verify?license=local-license',
+    'https://api.github.com/repos/B-Divyesh/sf-private-caption-export/releases/latest'
+  ]);
+  for (const request of remoteRequests) {
+    expect(`${request.url}${request.body || ''}`).not.toContain(captionMarker);
+  }
+});
+
 test('@claim:offline-workflow editing and export work offline after the first load', async ({ page, context }) => {
   await page.goto('/demo');
   await page.evaluate(() => navigator.serviceWorker.ready);
@@ -118,6 +190,8 @@ test('routes, keyboard controls, mobile layout, and accessibility baseline', asy
   await page.goto('/demo');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  const demoResults = await new AxeBuilder({ page: page as never }).analyze();
+  expect(demoResults.violations.filter(item => ['critical', 'serious'].includes(item.impact || ''))).toEqual([]);
 });
 
 test('empty, error, reset, and real workspace states provide a next step', async ({ page }) => {
@@ -136,10 +210,18 @@ test('empty, error, reset, and real workspace states provide a next step', async
 });
 
 test('every public route has one h1 and a route-specific title', async ({ page }) => {
-  const routes = ['/', '/demo', '/workspace', '/privacy', '/terms', '/notices', '/missing'];
+  const routes = ['/', '/demo', '/workspace', '/privacy', '/terms', '/notices'];
   for (const route of routes) {
     await page.goto(route);
     await expect(page.locator('h1')).toHaveCount(1);
     expect(await page.title()).toMatch(/Private Caption Export/);
   }
+});
+
+test('an unknown URL returns HTTP 404 and keeps the helpful not-found page', async ({ page }) => {
+  const response = await page.goto('/not-a-real-page');
+  expect(response?.status()).toBe(404);
+  await expect(page).toHaveTitle('Page not found — Private Caption Export');
+  await expect(page.getByRole('heading', { name: 'This caption path ends here' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Return home' })).toBeVisible();
 });

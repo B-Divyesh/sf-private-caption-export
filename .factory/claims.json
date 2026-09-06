@@ -14,6 +14,41 @@
     "sandbox": "fresh browser context on /demo; intercept all requests and inspect both storage namespaces"
   },
   {
+    "id": "no-meeting-bot-or-cloud-transcript",
+    "claim": "No meeting bot. No cloud transcript.",
+    "where": "landing privacy boundaries",
+    "test": "npm run test:e2e -- --grep @claim:no-meeting-bot-or-cloud-transcript",
+    "sandbox": "fresh browser context on /demo; edit and export a sample caption while recording every outgoing request"
+  },
+  {
+    "id": "audio-not-uploaded",
+    "claim": "Audio is not uploaded by this product.",
+    "where": "landing privacy boundaries, local transcription dialog",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml audio_is_not_uploaded_when_transcribed_with_local_whisper",
+    "sandbox": "temporary WAV, model, and local whisper-cli fixture; assert the local command receives the WAV and model and returns an SRT"
+  },
+  {
+    "id": "raw-audio-not-exported",
+    "claim": "Raw audio is never added to an HTML or plain-text export.",
+    "where": "landing privacy boundaries, workspace export note, README",
+    "test": "npm run test:unit -- -t @claim:raw-audio-not-exported",
+    "sandbox": "sample project with a representative raw-audio marker; assert both handoff formats contain selected captions and omit that marker"
+  },
+  {
+    "id": "typed-speaker-labels",
+    "claim": "Speaker labels are typed, not identified.",
+    "where": "landing privacy boundaries, README",
+    "test": "npm run test:e2e -- --grep @claim:typed-speaker-labels",
+    "sandbox": "fresh browser context on /demo; replace an uncertain speaker name, export it, and record outgoing requests"
+  },
+  {
+    "id": "no-tracking-or-caption-requests",
+    "claim": "No analytics, third-party fonts, or runtime CDN scripts are used; release and license requests never include caption content.",
+    "where": "README privacy and deployment",
+    "test": "npm run test:e2e -- --grep @claim:no-tracking-or-caption-requests",
+    "sandbox": "fresh landing page with a local caption marker and a test license; record all remote requests while mocked release and license services respond"
+  },
+  {
     "id": "local-transcription",
     "claim": "The desktop app runs an installed whisper-cli model against local WAV audio.",
     "where": "landing how-it-works, workspace dialog, README",

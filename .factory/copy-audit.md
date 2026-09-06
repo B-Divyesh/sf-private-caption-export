@@ -84,3 +84,5 @@ The first screen reads aloud in one breath: select agreed captions, open the sam
 | HTML visual treatment | export theme |
 
 Catalog description: “Turn local captions into a clear, consent-aware handoff.” It starts with a verb and is 56 characters.
+
+Privacy statements added to the claims register on 2026-09-06: no meeting bot or cloud transcript; local WAV transcription; no raw audio in exports; reviewer-typed speaker labels; and no tracking or caption content in release/license requests.

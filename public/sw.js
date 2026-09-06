@@ -1,5 +1,5 @@
-const CACHE = 'private-caption-export-v1';
-const SHELL = ['/', '/demo', '/workspace', '/privacy', '/terms', '/notices', '/caption-lattice.webp', '/favicon.svg'];
+const CACHE = 'private-caption-export-v0.1.3';
+const SHELL = ['/', '/404.html', '/demo', '/workspace', '/privacy', '/terms', '/notices', '/caption-lattice.webp', '/favicon.svg'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {

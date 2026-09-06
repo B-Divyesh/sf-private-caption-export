@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { exportHtml, exportText, formatTime, parseCaptions, sampleProject } from '../src/captions';
+import type { Project } from '../src/types';
 
 describe('caption files', () => {
   it('@claim:caption-import parses SRT, VTT, and plain text', () => {
@@ -30,5 +31,18 @@ describe('caption files', () => {
     expect(text).not.toContain(project.captions[4].text);
     project.exportTheme = 'high-contrast';
     expect(exportHtml(project)).toContain('color:#000;background:#fff');
+  });
+
+  it('@claim:raw-audio-not-exported keeps an audio marker out of both handoff files', () => {
+    const audioMarker = 'RIFF__private_meeting_audio_bytes__WAVE';
+    const project = Object.assign(structuredClone(sampleProject), { rawAudio: audioMarker }) as Project;
+
+    const html = exportHtml(project);
+    const text = exportText(project);
+
+    expect(html).not.toContain(audioMarker);
+    expect(text).not.toContain(audioMarker);
+    expect(html).toContain('The keyboard order works');
+    expect(text).toContain('The keyboard order works');
   });
 });

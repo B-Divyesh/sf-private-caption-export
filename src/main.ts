@@ -14,7 +14,7 @@ function header() {
 }
 
 function footer() {
-  return `<footer><p>Turn local captions into an agreed handoff.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://www.sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p>v0.1.2 · Generated artwork disclosed in the design notes.</p></footer>`;
+  return `<footer><p>Turn local captions into an agreed handoff.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://www.sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p>v0.1.3 · Generated artwork disclosed in the design notes.</p></footer>`;
 }
 
 function shell(content: string) {
@@ -313,7 +313,7 @@ function route(fromHistory = false, savedScroll = 0) {
   if (path === '/workspace') bindWorkspace(false);
   if (path === '/') {
     handleLicense();
-    if (location.hostname.endsWith('.sociobot.in')) releaseDownload();
+    if (!(window as unknown as { __TAURI_INTERNALS__?: object }).__TAURI_INTERNALS__) releaseDownload();
   }
   const heading = document.querySelector<HTMLElement>('h1');
   if (!initialRoute) heading?.focus({ preventScroll: true });

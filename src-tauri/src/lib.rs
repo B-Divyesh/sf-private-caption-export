@@ -1,8 +1,11 @@
 use std::{
     fs,
     process::Command,
+    sync::atomic::{AtomicU64, Ordering},
     time::{SystemTime, UNIX_EPOCH},
 };
+
+static TRANSCRIPT_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 #[tauri::command]
 async fn transcribe_audio(audio_path: String, model_path: String) -> Result<String, String> {
@@ -36,10 +39,12 @@ fn transcribe_with_command(
         .duration_since(UNIX_EPOCH)
         .map_err(|e| e.to_string())?
         .as_millis();
+    let sequence = TRANSCRIPT_SEQUENCE.fetch_add(1, Ordering::Relaxed);
     let output_base = std::env::temp_dir().join(format!(
-        "private-caption-export-{}-{}",
+        "private-caption-export-{}-{}-{}",
         std::process::id(),
-        stamp
+        stamp,
+        sequence
     ));
     let status = Command::new(command)
         .args(["-m", &model_path, "-f", &audio_path, "-osrt", "-of"])
@@ -96,6 +101,83 @@ mod tests {
         .unwrap();
 
         assert!(result.contains("Local result"));
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    #[doc = "Regression test for @claim:audio-not-uploaded."]
+    fn audio_is_not_uploaded_when_transcribed_with_local_whisper() {
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("pce-local-audio-test-{stamp}"));
+        fs::create_dir(&dir).unwrap();
+        let audio = dir.join("private-meeting.wav");
+        let model = dir.join("local-model.bin");
+        let command = dir.join("fake-whisper");
+        let invocation = dir.join("invocation.txt");
+        fs::write(&audio, b"RIFF private meeting fixture").unwrap();
+        fs::write(&model, b"local model fixture").unwrap();
+        fs::write(
+            &command,
+            format!(
+                "#!/bin/sh\nprintf '%s\\n' \"$@\" > '{}'\nfor arg in \"$@\"; do last=\"$arg\"; done\nprintf '1\\n00:00:00,000 --> 00:00:02,000\\nLocal-only result\\n' > \"$last.srt\"\n",
+                invocation.display()
+            ),
+        )
+        .unwrap();
+        let mut permissions = fs::metadata(&command).unwrap().permissions();
+        permissions.set_mode(0o700);
+        fs::set_permissions(&command, permissions).unwrap();
+
+        let result = transcribe_with_command(
+            audio.to_string_lossy().into_owned(),
+            model.to_string_lossy().into_owned(),
+            command.to_string_lossy().as_ref(),
+        )
+        .unwrap();
+
+        let args = fs::read_to_string(&invocation).unwrap();
+        assert!(args.contains(audio.to_string_lossy().as_ref()));
+        assert!(args.contains(model.to_string_lossy().as_ref()));
+        assert!(result.contains("Local-only result"));
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn concurrent_local_transcriptions_keep_separate_temp_outputs() {
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("pce-concurrent-test-{stamp}"));
+        fs::create_dir(&dir).unwrap();
+        let audio = dir.join("meeting.wav");
+        let model = dir.join("model.bin");
+        let command = dir.join("fake-whisper");
+        fs::write(&audio, b"RIFF test fixture").unwrap();
+        fs::write(&model, b"model fixture").unwrap();
+        fs::write(&command, b"#!/bin/sh\nfor arg in \"$@\"; do last=\"$arg\"; done\nprintf '1\n00:00:00,000 --> 00:00:02,000\nConcurrent local result\n' > \"$last.srt\"\n").unwrap();
+        let mut permissions = fs::metadata(&command).unwrap().permissions();
+        permissions.set_mode(0o700);
+        fs::set_permissions(&command, permissions).unwrap();
+
+        let jobs: Vec<_> = (0..8)
+            .map(|_| {
+                let audio = audio.to_string_lossy().into_owned();
+                let model = model.to_string_lossy().into_owned();
+                let command = command.to_string_lossy().into_owned();
+                std::thread::spawn(move || transcribe_with_command(audio, model, &command))
+            })
+            .collect();
+        for job in jobs {
+            assert!(job
+                .join()
+                .unwrap()
+                .unwrap()
+                .contains("Concurrent local result"));
+        }
         fs::remove_dir_all(dir).unwrap();
     }
 }
